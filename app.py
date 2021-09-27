@@ -1,3 +1,4 @@
+import asyncio
 import requests
 import re
 import string
@@ -107,9 +108,9 @@ class AnimePahe:
         stream_re = re.compile(r"https:\/\/(.*?)uwu.m3u8")
         return {"file_name": title, "url": stream_re.search(unpacked).group(0)}
 
-    def download(self, hls_url, file_name):
-        m3u8 = self.session.get(hls_url, headers={"Referer": "https://kwik.cx"})
-        Downloader(m3u8, file_name)
+    async def download(self, hls_url, file_name):
+        m3u8 = self.session.get(hls_url, headers={"Referer": "https://kwik.cx"}).text
+        await Downloader(m3u8, file_name).run()
 
 client = AnimePahe()
 # print(client)
@@ -118,3 +119,5 @@ client = AnimePahe()
 # r = client.get_links(anime_id, eps, "1080")
 r = client.get_hls_playlist("https://kwik.cx/e/7ZGAZ3KTZ2sL")
 print(r)
+asyncio.run(client.download(r["url"], r["file_name"]))
+# print(r)
