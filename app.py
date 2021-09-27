@@ -79,22 +79,23 @@ class AnimePahe:
         episode_ids = []
         data  = self.__get_api({"m": "release", "sort": "episode_desc", "id": anime_id, "page": page})
         episode_ids += [x["session"] for x in data["data"]]
-        print(page)
         if data["last_page"] > page:
             episode_ids += self.get_episodes(anime_id, page + 1)
    
         return episode_ids
     
-    def get_links(self, anime_id: int, episodes: list, quality: str) -> list:
+    def get_links(self, anime_id: int, episodes: list) -> list:
         links = []
         for episode in episodes:
             data = self.__get_api(
                 {"m": "links", "id": anime_id, "session": episode, "p": "kwik"}
             )
             for x in data["data"]:
+                best_q = 0
                 for xx in x:
-                    if xx == quality:
-                        links.append(x[xx]["kwik"])
+                    if int(xx) > best_q:
+                        best_q = int(xx)
+                links.append(x[str(best_q)]["kwik"])
         return links
 
     def get_hls_playlist(self, kwik_link: str) -> dict:
@@ -112,7 +113,7 @@ class AnimePahe:
         m3u8 = self.session.get(hls_url, headers={"Referer": "https://kwik.cx"}).text
         await Downloader(m3u8, file_name).run()
     
-    def dl(e):
+    def dl(self, e):
         print("Downloading " + e["file_name"])
         asyncio.run(client.download(e["url"], e["file_name"]))
 
@@ -121,7 +122,8 @@ client = AnimePahe()
 url = input("AnimePahe anime url: ")
 anime_id = client.get_real_anime_id(url.split("/")[-1])
 eps = client.get_episodes(anime_id)
-links = client.get_links(anime_id, eps, "1080")
+
+links = client.get_links(anime_id, eps)
 for link in links:
     hls_playlist = client.get_hls_playlist(link)
     client.dl(hls_playlist)
