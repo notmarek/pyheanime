@@ -2,7 +2,7 @@ import requests
 import re
 import string
 import random
-from utils.downloader import Downloader
+from yukinoshita.Yukinoshita.downloader import Downloader
 
 def int2base(x, base):
         digs = string.digits + string.ascii_letters
@@ -46,7 +46,6 @@ class AnimePahe:
             }
         )
         self.__get_ddos_guard_cookie()
-        self.downloader = Downloader()
 
     def __get_ddos_guard_cookie(self) -> None:
         self.session.get(
@@ -97,15 +96,20 @@ class AnimePahe:
                         links.append(x[xx]["kwik"])
         return links
 
-    def get_hls_playlist(self, kwik_link: str) -> str:
+    def get_hls_playlist(self, kwik_link: str) -> dict:
         data = self.__get_minified_uri(kwik_link, headers={"Referer": self.domain})
         rx = re.compile(r"returnp}\('(.*?)',(\d\d),(\d\d),'(.*?)'.split")
+        title_re = re.compile(r"<title>(.*?)</title>")
+        title = title_re.search(data).group(1)
         r = rx.findall(data)
         x = r[-1]
         unpacked = js_unpack(x[0], x[1], x[2], x[3])
-        stream_re  = re.compile(r"https:\/\/(.*?)uwu.m3u8")
-        return stream_re.search(unpacked).group(0)
+        stream_re = re.compile(r"https:\/\/(.*?)uwu.m3u8")
+        return {"file_name": title, "url": stream_re.search(unpacked).group(0)}
 
+    def download(self, hls_url, file_name):
+        m3u8 = self.session.get(hls_url, headers={"Referer": "https://kwik.cx"})
+        Downloader(m3u8, file_name)
 
 client = AnimePahe()
 # print(client)
