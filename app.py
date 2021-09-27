@@ -116,6 +116,7 @@ class AnimePahe:
         print("Downloading " + e["file_name"])
         asyncio.run(client.download(e["url"], e["file_name"]))
 
+print("Setting up the client.")
 client = AnimePahe()
 url = input("AnimePahe anime url: ")
 anime_id = client.get_real_anime_id(url.split("/")[-1])
