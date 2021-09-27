@@ -111,13 +111,16 @@ class AnimePahe:
     async def download(self, hls_url, file_name):
         m3u8 = self.session.get(hls_url, headers={"Referer": "https://kwik.cx"}).text
         await Downloader(m3u8, file_name).run()
+    
+    def dl(e):
+        print("Downloading " + e["file_name"])
+        asyncio.run(client.download(e["url"], e["file_name"]))
 
 client = AnimePahe()
-# print(client)
-# anime_id = client.get_real_anime_id("52c7da3f-0cef-c9d0-bdb9-e1dbec7c45c5")
-# eps = client.get_episodes(anime_id)
-# r = client.get_links(anime_id, eps, "1080")
-r = client.get_hls_playlist("https://kwik.cx/e/7ZGAZ3KTZ2sL")
-print(r)
-asyncio.run(client.download(r["url"], r["file_name"]))
-# print(r)
+url = input("AnimePahe anime url: ")
+anime_id = client.get_real_anime_id(url.split("/")[-1])
+eps = client.get_episodes(anime_id)
+links = client.get_links(anime_id, eps, "1080")
+for link in links:
+    hls_playlist = client.get_hls_playlist(link)
+    client.dl(hls_playlist)
