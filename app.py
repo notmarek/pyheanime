@@ -90,12 +90,13 @@ class AnimePahe:
             data = self.__get_api(
                 {"m": "links", "id": anime_id, "session": episode, "p": "kwik"}
             )
-            for x in data["data"]:
-                best_q = 0
+            best_q = { "id": 0, "res": 0 }
+            for i, x in enumerate(data["data"]):
                 for xx in x:
-                    if int(xx) > best_q:
-                        best_q = int(xx)
-                links.append(x[str(best_q)]["kwik"])
+                    if int(xx) > best_q["res"]:
+                        best_q["res"] = int(xx)
+                        best_q["id"] = i
+            links.append(data["data"][best_q["id"]][str(best_q["res"])]["kwik"])
         return links
 
     def get_hls_playlist(self, kwik_link: str) -> dict:
